@@ -10,6 +10,7 @@ class FSM {
     	}
 
     	this.config = config;
+    	this.initial_changed = 0;
     	this.active_state = config.initial;
     	this.config_original = config;
     	this.onChanged = 0;
@@ -51,6 +52,7 @@ class FSM {
      * @param event
      */
     trigger(event) {
+
     	var flag = 0;
     	for(var i in this.config.states){
     		if(i === this.getState()){
@@ -58,6 +60,7 @@ class FSM {
     				if(j === event){
     					flag++;
     					this.onChanged++;
+    					this.initial_changed++;
     					this.changeState(this.config.states[i].transitions[j]);
     				}
     			}
@@ -125,15 +128,17 @@ class FSM {
      * @returns {Boolean}
      */
     redo() {
-    	if(this.getState() === this.config.initial){
+    	if(this.initial_changed === 0){
     		return false;
-    	}else if(this.onChanged !== 0){
-    		return false;
-    	}else if(this.undo_history.length != 0){
-    		this.active_state = this.undo_history.pop();
-    		
+    	}
+    	if(this.undo_history !== null){
+    		this.changeState(this.undo_history.pop());
     		return true;
-    	}else if(this.undo_history.length === 0){
+    	}
+    	if(this.onChanged !== 0){
+    		return false;
+    	}
+    	if(this.undo_history.length === 0){
     		return false;
     	}
     }
